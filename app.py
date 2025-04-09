@@ -2,6 +2,7 @@ import streamlit as st
 import pydeck as pdk
 import pandas as pd
 import joblib
+import plotly.express as px
 from modules.data_loader import load_and_clean_data
 from modules.map_section import display_interactive_map_with_filter
 from modules.kpi_tiles import render_tile
@@ -156,6 +157,126 @@ st.markdown("### 🕒 Price Trends Over Time")
 freq_map = {"Monthly": "M", "Quarterly": "Q", "Yearly": "Y"}
 selected_freq = st.selectbox("Select Time Aggregation", list(freq_map.keys()), index=0)
 plot_trends(filtered_df, freq_map, selected_freq)
+
+# 📊 Market Overview Section
+st.markdown("### 📊 Market Overview")
+
+# Property Type Pie + Price Histogram side by side
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("#### 🏘️ Property Type Distribution")
+    if not filtered_df.empty and "propertyType" in filtered_df.columns:
+        type_counts = (
+            filtered_df["propertyType"]
+            .dropna()
+            .value_counts()
+            .reset_index()
+            .rename(columns={"index": "Property Type", "propertyType": "Count"})
+        )
+        fig = px.pie(
+            type_counts,
+            names="Count",
+            values="count",
+            hole=0.4,
+            color_discrete_sequence=[
+                "#e6d4b7", "#d4a373", "#b47b5a", "#8f5e3b", "#f3ede5"
+            ]
+
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No property type data available.")
+
+with col2:
+    st.markdown("#### 💷 Estimated Sale Price Distribution")
+    if "saleEstimate_currentPrice" in filtered_df.columns and not filtered_df["saleEstimate_currentPrice"].isna().all():
+        fig = px.histogram(
+            filtered_df.dropna(subset=["saleEstimate_currentPrice"]),
+            x="saleEstimate_currentPrice",
+            nbins=15,
+            title="",
+            labels={"saleEstimate_currentPrice": "Price (£)"},
+            color_discrete_sequence=["#d4a373"]  
+        )
+        fig.update_layout(
+            bargap=0.1,
+            xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showline=False,
+            ticks=""
+            ),
+            yaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showline=False,
+            ticks=""
+            ))
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No price data available.")
+
+# Bedrooms + Bathrooms Histogram
+col3, col4 = st.columns(2)
+
+with col3:
+    st.markdown("#### 🛏️ Number of Bedrooms")
+    if "bedrooms" in filtered_df.columns and not filtered_df["bedrooms"].isna().all():
+        fig = px.histogram(
+            filtered_df.dropna(subset=["bedrooms"]),
+            x="bedrooms",
+            nbins=10,
+            title="",
+            labels={"bedrooms": "Bedrooms"},
+            color_discrete_sequence=["#d4a373"]
+        )
+        fig.update_layout(
+            bargap=0.1,
+            xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showline=False,
+            ticks=""
+            ),
+            yaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showline=False,
+            ticks=""
+            ))
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No bedroom data available.")
+
+with col4:
+    st.markdown("#### 🛁 Number of Bathrooms")
+    if "bathrooms" in filtered_df.columns and not filtered_df["bathrooms"].isna().all():
+        fig = px.histogram(
+            filtered_df.dropna(subset=["bathrooms"]),
+            x="bathrooms",
+            nbins=10,
+            title="",
+            labels={"bathrooms": "Bathrooms"},
+            color_discrete_sequence=["#d4a373"]  
+        )
+        fig.update_layout(
+            bargap=0.05,
+            xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showline=False,
+            ticks=""
+            ),
+            yaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showline=False,
+            ticks=""
+            ))
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No bathroom data available.")
 
 # Price Estimate
 st.markdown("### 🧠 Predict Sale Price")
