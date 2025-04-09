@@ -3,7 +3,7 @@ from .borough_mapper import BoroughMapper
 
 @st.fragment
 def display_interactive_map_with_filter(df):
-    st.markdown("### 🎨 London Property Heatmap")
+    st.markdown("### 🔥 London Property Heatmap")
     metric = st.selectbox(
         "Color boroughs by:",
         options=[

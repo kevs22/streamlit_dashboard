@@ -31,6 +31,13 @@ if selected_boroughs:
     filtered_df = filtered_df[filtered_df["borough"].isin(selected_boroughs)]
 
 # Title 
+st.markdown("""
+    <style>
+    .block-container {
+        padding-top: 2rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
 st.title("London Housing Market Analysis")
 
 # Map + KPI layout
@@ -46,6 +53,49 @@ with right_col:
     render_tile("Avg. Estimated Sale Price", f"£{filtered_df['saleEstimate_currentPrice'].mean():,.0f}")
     qm_df = filtered_df.dropna(subset=["saleEstimate_currentPrice", "floorAreaSqM"])
     render_tile("Avg. Price per m²", f"£{(qm_df['saleEstimate_currentPrice'] / qm_df['floorAreaSqM']).mean():,.0f}")
+
+# Borough Leaderboard: average sale price
+leaderboard_df = (
+    filtered_df
+    .dropna(subset=["saleEstimate_currentPrice", "borough"])
+    .groupby("borough")
+    .agg(avg_price=("saleEstimate_currentPrice", "mean"))
+    .reset_index()
+)
+
+# Sort by price descending
+leaderboard_df = leaderboard_df.sort_values(by="avg_price", ascending=False).reset_index(drop=True)
+
+# Compute comparison to overall avg (optional)
+overall_avg = filtered_df["saleEstimate_currentPrice"].mean()
+leaderboard_df["vs_overall"] = ((leaderboard_df["avg_price"] - overall_avg) / overall_avg) * 100
+
+st.markdown("### 🏙️ Borough Leaderboard by Average Sale Price")
+
+with st.container(height=150):
+
+    for i, row in leaderboard_df.iterrows():
+        rank_emoji = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"{i+1}."
+        delta = f"(+{row['vs_overall']:.1f}%)" if row["vs_overall"] > 0 else f"({row['vs_overall']:.1f}%)"
+
+        st.markdown(
+            f"""
+            <div style='
+                background-color: #f3ede5;
+                padding: 8px 12px;
+                margin-bottom: 6px;
+                border-radius: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            '>
+                <span style='font-weight: bold;'>{rank_emoji} {row["borough"]}</span>
+                <span>£{row["avg_price"]:,.0f} <span style='color: {"green" if row["vs_overall"] > 0 else "red"};'>{delta}</span></span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # Top 5 properties
 st.markdown("### 🏡 Top 5 Most Expensive Properties")
