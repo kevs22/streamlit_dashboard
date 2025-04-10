@@ -7,38 +7,30 @@ from modules.data_loader import load_and_clean_data
 from modules.map_section import display_interactive_map_with_filter
 from modules.kpi_tiles import render_tile
 from components.property_dialog import render_property_details
+from components.sidebar import sidebar_filters
 from modules.trends import plot_trends
+from modules.css_loader import load_local_css
 
 # Config
 st.set_page_config(page_title="London Housing Market", layout="wide")
 GOOGLE_API_KEY = st.secrets["google_maps_api_key"]
 pdk.settings.mapbox_api_key = st.secrets["mapbox_key"]
 model, feature_columns = joblib.load("model/xgb_estimator.pkl")
+load_local_css()
 
+# Load Data
 df = load_and_clean_data()
 
-# Filters
-with st.sidebar:
-    st.image("assets/london_company_logo.png")
-
-    selected_boroughs = st.multiselect("Select Borough(s)", sorted(df["borough"].dropna().unique()))
-    min_date = pd.to_datetime(df['history_date'].min()).to_pydatetime()
-    max_date = pd.to_datetime(df['history_date'].max()).to_pydatetime()
-    selected_date_range = st.slider("Select Date Range", min_value=min_date, max_value=max_date, value=(min_date, max_date), format="YYYY-MM")
-
-# Filtered data
-filtered_df = df[(df["history_date"] >= selected_date_range[0]) & (df["history_date"] <= selected_date_range[1])]
-if selected_boroughs:
-    filtered_df = filtered_df[filtered_df["borough"].isin(selected_boroughs)]
+# Sidebar filters
+sidebar_data = sidebar_filters(df)
+filtered_df = df[
+    (df["history_date"] >= sidebar_data["selected_date_range"][0]) &
+    (df["history_date"] <= sidebar_data["selected_date_range"][1])
+]
+if sidebar_data["selected_boroughs"]:
+    filtered_df = filtered_df[filtered_df["borough"].isin(sidebar_data["selected_boroughs"])]
 
 # Title 
-st.markdown("""
-    <style>
-    .block-container {
-        padding-top: 2rem;
-    }
-    </style>
-""", unsafe_allow_html=True)
 st.title("London Housing Market Analysis")
 
 # Map + KPI layout
