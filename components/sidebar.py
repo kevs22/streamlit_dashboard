@@ -43,7 +43,7 @@ def sidebar_filters(df: pd.DataFrame) -> dict:
             "Select Date Range",
             min_value=default_min_date,
             max_value=default_max_date,
-            value=(default_min_date, default_max_date),
+            value=st.session_state.date_filter,
             key="date_filter",
             format="YYYY-MM"
         )
