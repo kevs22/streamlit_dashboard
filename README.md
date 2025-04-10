@@ -49,7 +49,7 @@ pip install -r requirements.txt
 data/kaggle_london_house_price_data.csv
 ```
 
-#### Set Up API Keys
+### 5. Set Up API Keys
 Add your API keys to your `secrets.toml` file:
 
 ```toml
@@ -57,7 +57,7 @@ google_maps_api_key = "YOUR_GOOGLE_MAPS_API_KEY"
 mapbox_key = "YOUR_MAPBOX_KEY"
 ```
 
-#### Run the App
+### 6. Run the App
 ```bash
 streamlit run app.py
 ```
