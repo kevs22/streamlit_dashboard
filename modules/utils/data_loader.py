@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from .borough_map import BoroughMap
+from modules import BoroughMap
 
 @st.cache_data
 def load_and_clean_data(filepath: str="data/kaggle_london_house_price_data.csv"):
