@@ -43,7 +43,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 ### 4. Download the Dataset
-- Download the dataset from Kaggle: London House Price Dataset[🏡 London House Price Dataset]
+- Download the dataset from Kaggle: [London House Price Dataset](https://www.kaggle.com/datasets/jakewright/house-price-data)
 - Move the CSV file to the following location
 ```bash
 data/kaggle_london_house_price_data.csv
