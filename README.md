@@ -2,7 +2,7 @@
 
 This interactive Streamlit dashboard visualizes and analyzes London’s residential housing market based on historical and estimated price data. It includes map-based exploration, borough leaderboards, ROI estimation, and price predictions.
 
-![Dashboard Screenshot](<img width="1422" alt="dashboard_screen" src="https://github.com/user-attachments/assets/16b28eb4-49ba-4fca-8fd3-9094d70f5c4a" />)
+<img width="1422" alt="dashboard_screen" src="https://github.com/user-attachments/assets/16b28eb4-49ba-4fca-8fd3-9094d70f5c4a" />
 
 ---
 
