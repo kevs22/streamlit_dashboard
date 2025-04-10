@@ -77,7 +77,7 @@ class BoroughMapper:
 
         # Use 'intersects' to include border cases
         joined = gpd.sjoin(points_gdf, self.boroughs_gdf[['borough', 'geometry']],
-                           how="left", predicate="intersects")
+                           how="left", predicate="within")
 
         # Return as a plain DataFrame
         result_df = pd.DataFrame(joined.drop(columns=["geometry", "index_right"]))
