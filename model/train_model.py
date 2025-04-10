@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from modules.data_loader import load_and_clean_data
+from modules.utils.data_loader import load_and_clean_data
 import xgboost as xgb
 import pandas as pd
 import joblib
