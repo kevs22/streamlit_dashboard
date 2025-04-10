@@ -4,12 +4,12 @@ import pandas as pd
 import joblib
 import plotly.express as px
 from modules.data_loader import load_and_clean_data
-from modules.map_section import display_interactive_map_with_filter
 from modules.kpi_tiles import render_tile
 from components.property_dialog import render_property_details
 from components.sidebar import sidebar_filters
 from modules.trends import plot_trends
 from modules.css_loader import load_local_css
+from modules.borough_map import BoroughMap
 
 # Config
 st.set_page_config(page_title="London Housing Market", layout="wide")
@@ -36,7 +36,8 @@ st.title("London Housing Market Analysis")
 # Map + KPI layout
 left_col, right_col = st.columns([3, 1])
 with left_col:
-    display_interactive_map_with_filter(filtered_df)
+    map_section = BoroughMap(filtered_df)
+    map_section.render()
 with right_col:
     spacer_height_px = 146
     st.markdown(f'<div style="height: {spacer_height_px}px;"></div>', unsafe_allow_html=True)

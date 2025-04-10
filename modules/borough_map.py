@@ -8,16 +8,17 @@ import plotly.express as px
 import pydeck as pdk
 import streamlit as st
 
-class BoroughMapper:
+class BoroughMap:
     """
     Handles merging London borough geometries, assigning data points to boroughs,
     and generating choropleth maps.
     """
 
-    def __init__(self, borough_folder: str):
+    def __init__(self, df: pd.DataFrame, borough_folder: str = "data/london_boroughs"):
         """
         Initialize the BoroughMapper with the path to TopoJSON files.
         """
+        self.df = df
         self.borough_folder = borough_folder
         self.boroughs_gdf = self._load_boroughs()
 
@@ -59,7 +60,7 @@ class BoroughMapper:
 
         return london_gdf
 
-    def assign_boroughs(self, df: pd.DataFrame) -> pd.DataFrame:
+    def assign_boroughs(self) -> pd.DataFrame:
         """
         Assigns each row in the DataFrame to a London borough based on lat/lon.
 
@@ -69,11 +70,11 @@ class BoroughMapper:
         Returns:
             pd.DataFrame: Original DataFrame with added 'borough' column.
         """
-        if not {'latitude', 'longitude'}.issubset(df.columns):
+        if not {'latitude', 'longitude'}.issubset(self.df.columns):
             raise ValueError("Input DataFrame must contain 'latitude' and 'longitude' columns.")
 
-        geometry = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
-        points_gdf = gpd.GeoDataFrame(df.copy(), geometry=geometry, crs="EPSG:4326")
+        geometry = [Point(xy) for xy in zip(self.df['longitude'], self.df['latitude'])]
+        points_gdf = gpd.GeoDataFrame(self.df.copy(), geometry=geometry, crs="EPSG:4326")
 
         # Use 'intersects' to include border cases
         joined = gpd.sjoin(points_gdf, self.boroughs_gdf[['borough', 'geometry']],
@@ -117,7 +118,7 @@ class BoroughMapper:
         # Normalize values to RGB (red-yellow gradient)
         max_val = choropleth_gdf["value"].max() or 1
         choropleth_gdf["fill_color"] = choropleth_gdf["value"].apply(
-            lambda x: BoroughMapper.interpolate_color(x, max_val)
+            lambda x: BoroughMap.interpolate_color(x, max_val)
         )
 
 
@@ -160,3 +161,19 @@ class BoroughMapper:
             for i in range(3)
         ]
         return color + [180]  # Add alpha
+
+    def render(self):
+        st.markdown("### 🔥 London Property Heatmap")
+
+        metric = st.selectbox(
+            "Color boroughs by:",
+            options=[
+                "Count", "Avg. Estimated Price", "Avg. History Price",
+                "Avg. Size", "Avg. Price per m²"
+            ],
+            index=0,
+            key="choropleth_metric_selector"
+        )
+
+        deck = self.plot_choropleth_pydeck(self.df, metric)
+        st.pydeck_chart(deck, use_container_width=True)

@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 
 def sidebar_filters(df: pd.DataFrame):
+    """
+    """
     with st.sidebar:
         st.image("assets/london_company_logo.png")
 
@@ -15,7 +17,7 @@ def sidebar_filters(df: pd.DataFrame):
             st.session_state["date_filter"] = (default_min_date, default_max_date)
             st.session_state["reset_filters"] = False
 
-        # Widgets (no default=, just key!)
+        # Widgets
         st.multiselect(
             "Select Borough(s)",
             options=sorted(df["borough"].dropna().unique()),
