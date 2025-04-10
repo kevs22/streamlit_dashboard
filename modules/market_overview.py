@@ -6,12 +6,37 @@ from components.property_dialog import render_property_details
 
 
 class MarketOverview:
+    """
+    Renders various market analytics and visual insights for the London housing dataset.
+
+    This class is responsible for generating:
+    - A borough-level leaderboard
+    - Top expensive properties
+    - Property trends (prices and percentage change)
+    - Distribution of property types, prices, bedrooms, and bathrooms
+    """
+
     def __init__(self, df: pd.DataFrame, google_api_key: str = None):
+        """
+        Initializes the MarketOverview with dataset and optional Google Maps API key.
+
+        Args:
+            df (pd.DataFrame): The cleaned housing dataset.
+            google_api_key (str, optional): Key used for Google Street View thumbnails.
+        """
         self.df = df
         self.google_api_key = google_api_key
 
-    def render(self):
+    def render(self) -> None:
         """
+        Renders the full market overview section in Streamlit.
+
+        This includes:
+        - Borough leaderboard
+        - Top 5 expensive properties
+        - Time series trends
+        - Property type pie chart and price distribution
+        - Bedroom and bathroom histograms
         """
         self._render_leaderboard()
         self._render_top_properties()
@@ -21,9 +46,8 @@ class MarketOverview:
         self._render_property_type_and_price()
         self._render_bed_bath_histograms()
 
-    def _render_leaderboard(self):
-        """
-        """
+    def _render_leaderboard(self) -> None:
+        """Displays a leaderboard of boroughs sorted by average sale price."""
         leaderboard_df = (
         self.df
         .dropna(subset=["saleEstimate_currentPrice", "borough"])
@@ -32,10 +56,7 @@ class MarketOverview:
         .reset_index()
         )
 
-        # Sort by price descending
         leaderboard_df = leaderboard_df.sort_values(by="avg_price", ascending=False).reset_index(drop=True)
-
-        # Compute comparison to overall avg (optional)
         overall_avg = self.df["saleEstimate_currentPrice"].mean()
         leaderboard_df["vs_overall"] = ((leaderboard_df["avg_price"] - overall_avg) / overall_avg) * 100
 
@@ -58,9 +79,8 @@ class MarketOverview:
                 unsafe_allow_html=True
                 )
 
-    def _render_top_properties(self):
-        """
-        """
+    def _render_top_properties(self) -> None:
+        """Displays the top 5 most expensive properties with Street View thumbnails."""
         st.markdown("### 🏡 Top 5 Most Expensive Properties")
         top_5 = (
             self.df.dropna(subset=["saleEstimate_currentPrice", "latitude", "longitude"])
@@ -75,13 +95,12 @@ class MarketOverview:
             price = row["saleEstimate_currentPrice"]
             borough = row["borough"]
 
-            # Generate Street View image URL (smaller size for tile)
             img_url = (
                 f"https://maps.googleapis.com/maps/api/streetview"
                 f"?size=200x150&location={lat},{lon}&key={self.google_api_key}" # 
             )
 
-            # Render tile in respective column
+            # Render tiles
             with cols[i]:
                 st.markdown(
                     f"""
@@ -98,25 +117,23 @@ class MarketOverview:
 
                 button_key = f"details_btn_{index}"
                 if st.button("View Details", key=button_key, use_container_width=True):
-                    # Call the dialog function, passing the data for THIS row
                     render_property_details(row, self.google_api_key)
 
-
-    def _render_price_trends(self):
-        """
-        """
+    @st.fragment
+    def _render_price_trends(self) -> None:
+        """Plots time series charts for historical price and % change over time."""
         freq_map = {"Monthly": "M", "Quarterly": "Q", "Yearly": "Y"}
         selected_freq = st.selectbox("Select Time Aggregation", list(freq_map.keys()), index=0)
         
-            # Group 1: History
         price_trend = (
             self.df
             .groupby(pd.Grouper(key="history_date", freq=freq_map[selected_freq]))["history_price"]
             .mean().dropna()
         )
-
-        # Group 2: %
-        self.df["saleEstimate_valueChange.saleDate"] = pd.to_datetime( self.df["saleEstimate_valueChange.saleDate"], errors='coerce')
+        self.df["saleEstimate_valueChange.saleDate"] = pd.to_datetime(
+            self.df["saleEstimate_valueChange.saleDate"], errors='coerce'
+        )
+        
         percentage_trend = (
             self.df
             .dropna(subset=["saleEstimate_valueChange.percentageChange", "saleEstimate_valueChange.saleDate"])
@@ -138,12 +155,11 @@ class MarketOverview:
             fig2.update_layout(title="Avg. % Price Change", height=350, xaxis_title="Date", yaxis_title="%")
             st.plotly_chart(fig2, use_container_width=True)
 
-    def _render_property_type_and_price(self):
-        """
-        """
+    def _render_property_type_and_price(self) -> None:
+        """Renders a pie chart of property types and a histogram of sale prices."""
         col1, col2 = st.columns(2)
 
-        # 🏘️ Property Type Pie Chart
+        # Property Type Pie Chart
         with col1:
             st.markdown("#### 🏘️ Property Type Distribution")
             if not self.df.empty and "propertyType" in self.df.columns:
@@ -167,7 +183,7 @@ class MarketOverview:
             else:
                 st.info("No property type data available.")
 
-        # 💷 Sale Price Histogram
+        # Sale Price Histogram
         with col2:
             st.markdown("#### 💷 Estimated Sale Price Distribution")
             if "saleEstimate_currentPrice" in self.df.columns and not self.df["saleEstimate_currentPrice"].isna().all():
@@ -187,9 +203,8 @@ class MarketOverview:
             else:
                 st.info("No price data available.")
 
-    def _render_bed_bath_histograms(self):
-        """
-        """
+    def _render_bed_bath_histograms(self) -> None:
+        """Displays side-by-side histograms for bedroom and bathroom counts."""
         col1, col2 = st.columns(2)
 
         self._render_histogram(
@@ -208,8 +223,19 @@ class MarketOverview:
             col=col2
         )
 
-    def _render_histogram(self, column: str, label: str, x_label: str, color: str, col: str):
+    def _render_histogram(self, column: str, label: str, x_label: str, color: str, col: st.delta_generator.DeltaGenerator) -> None:
         """
+        Generic histogram renderer used for bedroom/bathroom visualizations.
+
+        Args:
+            column (str): The DataFrame column to visualize.
+            label (str): Title of the chart.
+            x_label (str): X-axis label.
+            color (str): Hex color used for the bars.
+            col (st.delta_generator.DeltaGenerator): Streamlit column container to render the chart in.
+
+        Returns:
+            None.
         """
         with col:
             st.markdown(f"#### {label}")

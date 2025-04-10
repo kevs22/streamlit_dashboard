@@ -2,10 +2,30 @@ import streamlit as st
 import pandas as pd
 
 class ROICalculator:
+    """
+    A component that estimates the return on investment (ROI) for a property
+    based on purchase price, hold period, and historical appreciation rates.
+
+    Attributes:
+        df (pd.DataFrame): The dataset containing property sales history.
+    """
+
     def __init__(self, df: pd.DataFrame):
+        """
+        Initializes the ROICalculator.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing property sales data, including
+                'borough', 'history_price', and 'history_date' columns.
+        """
         self.df = df
 
-    def render(self):
+    def render(self) -> None:
+        """
+        Renders the Streamlit form UI for selecting borough, purchase price,
+        hold period, and appreciation rate. Computes and displays projected
+        property value and ROI.
+        """
         st.markdown("### 🧮 ROI Estimator")
 
         boroughs = sorted(self.df["borough"].dropna().unique())

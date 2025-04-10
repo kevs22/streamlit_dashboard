@@ -4,19 +4,26 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 from topojson import Topology
-import plotly.express as px
 import pydeck as pdk
 import streamlit as st
 
 class BoroughMap:
     """
-    Handles merging London borough geometries, assigning data points to boroughs,
-    and generating choropleth maps.
+    Manages geographic borough data for London, including assignment and visualization.
+
+    This class handles:
+    - Loading and merging borough geometries from TopoJSON files.
+    - Assigning boroughs to properties based on latitude/longitude.
+    - Creating choropleth maps for visualizing borough-level metrics.
     """
 
     def __init__(self, df: pd.DataFrame, borough_folder: str = "data/london_boroughs"):
         """
-        Initialize the BoroughMapper with the path to TopoJSON files.
+        Initializes the BoroughMap with a dataset and TopoJSON folder path.
+
+        Args:
+            df (pd.DataFrame): A DataFrame with property data.
+            borough_folder (str): Directory containing TopoJSON files for London boroughs.
         """
         self.df = df
         self.borough_folder = borough_folder
@@ -24,7 +31,10 @@ class BoroughMap:
 
     def _load_boroughs(self) -> gpd.GeoDataFrame:
         """
-        Loads and merges all TopoJSON borough files into a single GeoDataFrame.
+        Loads and merges TopoJSON borough files into a single GeoDataFrame.
+
+        Returns:
+            gpd.GeoDataFrame: A GeoDataFrame containing London borough shapes with names.
         """
         gdfs = []
 
@@ -62,13 +72,10 @@ class BoroughMap:
 
     def assign_boroughs(self) -> pd.DataFrame:
         """
-        Assigns each row in the DataFrame to a London borough based on lat/lon.
-
-        Args:
-            df (pd.DataFrame): DataFrame with 'latitude' and 'longitude' columns.
+        Assigns a borough to each property in the dataset based on lat/lon.
 
         Returns:
-            pd.DataFrame: Original DataFrame with added 'borough' column.
+            pd.DataFrame: Original DataFrame with an added 'borough' column.
         """
         if not {'latitude', 'longitude'}.issubset(self.df.columns):
             raise ValueError("Input DataFrame must contain 'latitude' and 'longitude' columns.")
@@ -84,16 +91,17 @@ class BoroughMap:
         result_df = pd.DataFrame(joined.drop(columns=["geometry", "index_right"]))
         return result_df
     
+    @st.fragment
     def plot_choropleth_pydeck(self, df_with_boroughs: pd.DataFrame, metric: str) -> pdk.Deck:
         """
-        Create a choropleth map using PyDeck (GeoJsonLayer), colored by the selected metric.
+        Generates a choropleth map of boroughs colored by a selected metric.
 
         Args:
-            df_with_boroughs (pd.DataFrame): DataFrame with a 'borough' column.
-            metric (str): Metric name to color the boroughs by.
+            df_with_boroughs (pd.DataFrame): A DataFrame containing a 'borough' column.
+            metric (str): One of several supported metrics (e.g., "Count", "Avg. Size").
 
         Returns:
-            pydeck.Deck: Interactive choropleth map.
+            pydeck.Deck: A rendered choropleth map layer for Streamlit.
         """
         # Compute the selected metric per borough
         if metric == "Count":
@@ -150,19 +158,39 @@ class BoroughMap:
         )
 
     @staticmethod
-    def interpolate_color(x, max_val):
-        # Define a soft brown-orange gradient
-        start_color = [240, 224, 200]  # light beige
-        end_color = [150, 90, 60]      # muted rust brown
+    def interpolate_color(x: float, max_val: float) -> list[int]:
+        """
+        Interpolates a color value between a beige and rust-brown scale.
+
+        Args:
+            x (float): The value to normalize.
+            max_val (float): The maximum value for normalization.
+
+        Returns:
+            list[int]: RGBA color as a list of 4 integers.
+        """
+        start_color = [240, 224, 200]  
+        end_color = [150, 90, 60] 
 
         ratio = min(x / max_val, 1) if max_val else 0
         color = [
             int(start_color[i] + ratio * (end_color[i] - start_color[i]))
             for i in range(3)
         ]
-        return color + [180]  # Add alpha
+        return color + [180]
 
-    def render(self):
+    def render(self) -> None:
+        """
+        Renders the interactive choropleth map section in Streamlit.
+
+        This method displays:
+        - A section title
+        - A selectbox to choose the metric used to color boroughs
+        - A PyDeck choropleth map based on the selected metric
+        
+        Returns:
+            None.
+        """
         st.markdown("### 🔥 London Property Heatmap")
 
         metric = st.selectbox(

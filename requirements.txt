@@ -1,0 +1,10 @@
+geopandas==1.0.1
+joblib==1.4.2
+pandas==2.2.3
+plotly==6.0.1
+pydeck==0.9.1
+scikit_learn==1.6.1
+Shapely==2.1.0
+streamlit==1.44.1
+topojson==1.9
+xgboost==3.0.0

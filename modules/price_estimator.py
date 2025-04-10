@@ -1,14 +1,35 @@
 import pandas as pd
 import streamlit as st
+from xgboost import XGBRegressor
 
 class PriceEstimator:
+    """
+    A Streamlit component for estimating property sale prices using a trained model,
+    and displaying similar properties based on user input.
 
-    def __init__(self, df: pd.DataFrame, model, feature_columns: list):
+    Attributes:
+        df (pd.DataFrame): The dataset used for similarity comparison.
+        model: The trained machine learning model for predicting prices.
+        feature_columns (list): List of columns used by the model.
+    """
+
+    def __init__(self, df: pd.DataFrame, model: XGBRegressor, feature_columns: list[str]):
+        """
+        Initializes the PriceEstimator.
+
+        Args:
+            df (pd.DataFrame): Dataset used for finding similar properties.
+            model (XGBRegressor): Trained XGBoost regression model for predicting prices.
+            feature_columns (List[str]): List of feature names used for prediction.
+        """
         self.df = df
         self.model = model
         self.feature_columns = feature_columns
 
-    def render(self):
+    def render(self) -> None:
+        """
+        Renders the prediction form and displays predicted price along with similar properties.
+        """
         st.markdown("### 🧠 Predict Sale Price")
 
         with st.form("prediction_form"):
@@ -54,7 +75,17 @@ class PriceEstimator:
                 "bathrooms", "livingRooms", "propertyType", "saleEstimate_currentPrice"
             ]])
 
-    def _find_similar_properties(self, input_row, n=5):
+    def _find_similar_properties(self, input_row: pd.DataFrame, n: int=5) -> pd.DataFrame:
+        """
+        Finds the top N most similar properties based on input criteria.
+
+        Args:
+            input_row (pd.DataFrame): A single-row DataFrame with user inputs.
+            n (int, optional): Number of similar properties to return. Defaults to 5.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the most similar properties.
+        """
         df_sim = self.df.copy()
         borough = input_row["borough"].iloc[0]
         property_type = input_row["propertyType"].iloc[0]
