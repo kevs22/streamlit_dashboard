@@ -26,6 +26,16 @@ def sidebar_filters(df: pd.DataFrame) -> dict:
         default_min_date = pd.to_datetime(df["history_date"].min()).to_pydatetime()
         default_max_date = pd.to_datetime(df["history_date"].max()).to_pydatetime()
 
+        # Initialize session state keys if missing
+        if "borough_filter" not in st.session_state:
+            st.session_state["borough_filter"] = []
+
+        if "date_filter" not in st.session_state:
+            st.session_state["date_filter"] = (default_min_date, default_max_date)
+
+        if "reset_filters" not in st.session_state:
+            st.session_state["reset_filters"] = False
+
         # Handle reset
         if st.session_state.get("reset_filters", False):
             st.session_state["borough_filter"] = []
@@ -39,11 +49,13 @@ def sidebar_filters(df: pd.DataFrame) -> dict:
             key="borough_filter"
         )
 
+        if "date_filter" not in st.session_state:
+            st.session_state["date_filter"] = (default_min_date, default_max_date)
+
         st.slider(
             "Select Date Range",
             min_value=default_min_date,
             max_value=default_max_date,
-            value=st.session_state.date_filter,
             key="date_filter",
             format="YYYY-MM"
         )
