@@ -24,3 +24,25 @@ This interactive Streamlit dashboard visualizes and analyzes London’s resident
 ```bash
 git clone https://github.com/kevs22/streamlit_dashboard.git
 cd streamlit_dashboard
+```
+### 2. Create & Activate a Virtual Environment
+
+#### 💻 On macOS / Linux:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+#### 🖥️ On Windows:
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+
+
+
