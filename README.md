@@ -42,11 +42,24 @@ venv\Scripts\activate
 ```bash
 pip install -r requirements.txt
 ```
-### Download the Dataset
+### 4. Download the Dataset
 - Download the dataset from Kaggle: London House Price Dataset[🏡 London House Price Dataset]
 - Move the CSV file to the following location
 ```bash
 data/kaggle_london_house_price_data.csv
+```
+
+#### Set Up API Keys
+Add your API keys to your `secrets.toml` file:
+
+```toml
+google_maps_api_key = "YOUR_GOOGLE_MAPS_API_KEY"
+mapbox_key = "YOUR_MAPBOX_KEY"
+```
+
+#### Run the App
+```bash
+streamlit run app.py
 ```
 
 
