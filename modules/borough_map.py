@@ -83,7 +83,6 @@ class BoroughMap:
         geometry = [Point(xy) for xy in zip(self.df['longitude'], self.df['latitude'])]
         points_gdf = gpd.GeoDataFrame(self.df.copy(), geometry=geometry, crs="EPSG:4326")
 
-        # Use 'intersects' to include border cases
         joined = gpd.sjoin(points_gdf, self.boroughs_gdf[['borough', 'geometry']],
                            how="left", predicate="within")
 
